@@ -60,9 +60,9 @@ Joystick_ Joystick[PAD_COUNT] = {
   Joystick_(JOYSTICK_DEFAULT_REPORT_ID+3, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, ENABLE_Y_AXIS, false, false, false, false, false, false, false, false, false),
 };
 
-#define AXIS_MIN  -100
+#define AXIS_MIN  -1023
 #define AXIS_MID  0
-#define AXIS_MAX  100
+#define AXIS_MAX  1023
 
 
 
@@ -79,8 +79,10 @@ int* AllPins = PlayerJoystickPins[0];
   for ( int p=0;  p<PAD_COUNT;  p++)
   {
     auto& Pad = Joystick[p];
-    Pad.begin(false);
     Pad.setXAxisRange( AXIS_MIN, AXIS_MAX );
+    Pad.setYAxisRange( AXIS_MIN, AXIS_MAX );
+    Pad.begin(false);
+    Pad.setYAxis( AXIS_MID );
   }
 }
 
@@ -152,8 +154,7 @@ void loop()
     if ( RightDown )
       x = AXIS_MIN;
     Pad.setXAxis( x );
-  
-   Pad.sendState();
+    Pad.sendState();
  }
  
 
