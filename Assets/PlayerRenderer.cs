@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerRenderer : MonoBehaviour {
 
 	public RectTransform	Cannon;
+	public RectTransform	CannonLaunchPos;
 
 	public void SetAngle(float Angle)
 	{

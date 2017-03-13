@@ -24,6 +24,7 @@ public class Game : MonoBehaviour {
 	}
 
 	private TState			State = TState.InitGame;
+	public RectTransform	World;
 	public PlayerRenderer	PlayerTemplate;
 	public GameObject		MissileTemplate;
 
@@ -49,8 +50,10 @@ public class Game : MonoBehaviour {
 	public float			AngleMax = 45;
 
 	[Header("Missile Flight")]
-	[Range(0,40)]
+	[Range(1,40)]
 	public float			MissileFlightDuration = 10;
+	[Range(0,100)]
+	public float			MissileVelocity = 40;
 
 	[Header("End Game")]
 	[Range(0,40)]
@@ -62,7 +65,7 @@ public class Game : MonoBehaviour {
 	public float			ErrorDuration = 20;
 
 
-	
+
 
 	class TPlayer
 	{
@@ -95,22 +98,43 @@ public class Game : MonoBehaviour {
 		public Vector2		StartPosition;
 		public float		Angle = 0;
 		public GameObject	Sprite;
-		float				InitialVelocity = 10;
+		float				InitialVelocity = 30;
+		float				Gravity = 9.8f;
+		float				TimeScalar = 1;
+				float vyt(float v,float a,float t){return v*Mathf.Sin( Mathf.Deg2Rad*a )-Gravity*t;}		float yt(float v,float a,float t){return v*Mathf.Sin(Mathf.Deg2Rad*a)*t-0.5f*Gravity*t*t;}		float vxf(float v,float a){return v*Mathf.Cos(Mathf.Deg2Rad*a);}		float trad(float v,float y){return Mathf.Sqrt(v*v/(Gravity*Gravity)-2*y/Gravity);}
 
-				float vyt(float v,float a,float t){return v*Mathf.Sin(a*Mathf.PI/180.0f)-9.8f*t;}		float yt(float v,float a,float t){return v*Mathf.Sin(a*Mathf.PI/180.0f)*t-0.5f*9.8f*t*t;}		float vxf(float v,float a){return v*Mathf.Cos(a*Mathf.PI/180.0f);}		float trad(float v,float y){return Mathf.Sqrt(v*v/(9.8f*9.8f)-2*y/9.8f);}
+		public TMissile(float FireVelocity,float _TimeScalar)
+		{
+			TimeScalar = _TimeScalar;
+			InitialVelocity = FireVelocity;
+		}
+
+		public float		GetTimeUntilFloor()
+		{
+			return TimeScalar;
+		}
 
 		//	from http://hyperphysics.phy-astr.gsu.edu/hbase/traj.html
 		public Vector2		GetPathPosition(float Time)
 		{
-			float tt = Time;
-			float ag = Angle;
+			float tt = Time ;
+			float ag = -Angle -270;
 			float v = InitialVelocity;
 			float HorzVelocity = vxf(v,ag);
 			float HorzDistance = vxf(v,ag)*tt;
 			float VertVelocity = vyt(v,ag,tt);
 			float VertDistance = yt(v,ag,tt);
-			return new Vector2( HorzDistance, VertDistance );
+			return StartPosition + new Vector2( HorzDistance, VertDistance );
 		}
+	}
+
+	//	get pos in Canvas-World space
+	Vector3 GetWorldPos(Transform Obj)
+	{
+		//return Vector3.zero;
+		var Pos = Obj.position;
+		var WorldPos = World.worldToLocalMatrix.MultiplyPoint (Pos);
+		return WorldPos;
 	}
 
 	TState Update_InitGame()
@@ -143,6 +167,10 @@ public class Game : MonoBehaviour {
 	TState Update_InitRound()
 	{
 		OnRoundStart.Invoke();
+
+		foreach (var Player in Players)
+			Player.Angle = 0;
+		
 		return TState.Countdown;
 	}
 
@@ -186,13 +214,14 @@ public class Game : MonoBehaviour {
 			if ( !Player.Alive )
 				continue;
 
-			var Missile = new TMissile();
+			var Missile = new TMissile( MissileVelocity, MissileFlightDuration );
 			Missile.Angle = Player.Angle;
-			var Pos3 = Player.Sprite.transform.position;
+			var Pos3 = GetWorldPos (Player.Sprite.CannonLaunchPos.transform);
 			Missile.StartPosition = new Vector2( Pos3.x, Pos3.y );
 			Missile.Sprite = GameObject.Instantiate( MissileTemplate );
 			Missile.Sprite.transform.SetParent( MissileTemplate.transform.parent, false );
 			Missile.Sprite.gameObject.SetActive(true);
+
 			Missiles.Add( Missile );
 		}
 
@@ -201,18 +230,27 @@ public class Game : MonoBehaviour {
 
 	TState Update_MissileFlight()
 	{
-		float MissileTime = StateTime / MissileFlightDuration;
+		float MissileTime = StateTime;
 
 		foreach ( var Missile in Missiles )
 		{
 			var Pos = Missile.GetPathPosition( MissileTime );
 			var Pos3 = Missile.Sprite.transform.localPosition;
+
+			//	wrap
+			if (Pos.x < World.rect.xMin)
+				Pos.x += World.rect.width;
+			if (Pos.x > World.rect.xMax)
+				Pos.x -= World.rect.width;
+			
 			Pos3.x = Pos.x;
 			Pos3.y = Pos.y;
 			Missile.Sprite.transform.localPosition = Pos3;
 
 			//	check collisions
 		}
+
+		UpdatePlayerInput();
 
 		//	check if all missles are dead
 		if ( Missiles.Count == 0 )
@@ -297,6 +335,9 @@ public class Game : MonoBehaviour {
 
 	void Start()
 	{
+		if (World == null)
+			World = PlayerTemplate.transform.parent.GetComponent<RectTransform>();
+		
 		PlayerTemplate.gameObject.SetActive(false);
 		MissileTemplate.gameObject.SetActive(false);
 	}
