@@ -10,7 +10,15 @@
 #define PAD_COUNT     PLAYER_COUNT
 #define LED_BRIGHTNESS  20
 
+
+bool TestFlash = false;
+int FlashCount = 0;
+int FlashAlternate = 20;
+int RefreshRate = 50;
+
 Adafruit_NeoPixel Leds = Adafruit_NeoPixel(12, LED_PIN, NEO_RGB + NEO_KHZ800);
+
+uint32_t ColourOff = Leds.Color( 0,0,0,0 );
 
 //  gr: one of the pins broke, so OOO :/
 int PlayerLeds[PLAYER_COUNT][3] = 
@@ -36,19 +44,20 @@ int GamepadIndex[PLAYER_COUNT] =
 
 uint32_t PlayerColours[PLAYER_COUNT] = 
 {
-  Leds.Color( LED_BRIGHTNESS,0,0 ),
-  Leds.Color( 0,LED_BRIGHTNESS,LED_BRIGHTNESS ),
-  Leds.Color( LED_BRIGHTNESS,LED_BRIGHTNESS,0 ),
   Leds.Color( LED_BRIGHTNESS,0,LED_BRIGHTNESS ),
+  Leds.Color( LED_BRIGHTNESS,LED_BRIGHTNESS,0 ),
+  Leds.Color( 0,LED_BRIGHTNESS,LED_BRIGHTNESS ),
+  Leds.Color( LED_BRIGHTNESS,0,0 ),
 };
 
 #define JOYSTICK_BUTTON_COUNT 0
+#define ENABLE_Y_AXIS false
 
 Joystick_ Joystick[PAD_COUNT] = {
-  Joystick_(0x03, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, false, false, false, false, false, false, false, false, false, false),
-  Joystick_(0x04, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, false, false, false, false, false, false, false, false, false, false),
-  Joystick_(0x05, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, false, false, false, false, false, false, false, false, false, false),
-  Joystick_(0x06, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, false, false, false, false, false, false, false, false, false, false),
+  Joystick_(JOYSTICK_DEFAULT_REPORT_ID, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, ENABLE_Y_AXIS, false, false, false, false, false, false, false, false, false),
+  Joystick_(JOYSTICK_DEFAULT_REPORT_ID+1, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, ENABLE_Y_AXIS, false, false, false, false, false, false, false, false, false),
+  Joystick_(JOYSTICK_DEFAULT_REPORT_ID+2, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, ENABLE_Y_AXIS, false, false, false, false, false, false, false, false, false),
+  Joystick_(JOYSTICK_DEFAULT_REPORT_ID+3, JOYSTICK_TYPE_GAMEPAD, JOYSTICK_BUTTON_COUNT, 0, true, ENABLE_Y_AXIS, false, false, false, false, false, false, false, false, false),
 };
 
 #define AXIS_MIN  -100
@@ -94,12 +103,6 @@ Direction::TYPE PlayerDirection[PLAYER_COUNT] =
   Direction::None,
 };
 
-uint32_t ColourOff = Leds.Color( 0,0,0,0 );
-
-bool TestFlash = false;
-int FlashCount = 0;
-int FlashAlternate = 20;
-int RefreshRate = 50;
 void loop() 
 {
   for ( int p=0;  p<PLAYER_COUNT; p++ )
@@ -145,9 +148,9 @@ void loop()
     auto& Pad = Joystick[GamepadIndex[p]];
     int16_t x = AXIS_MID;
     if ( LeftDown )
-      x = AXIS_MIN;
-    if ( RightDown )
       x = AXIS_MAX;
+    if ( RightDown )
+      x = AXIS_MIN;
     Pad.setXAxis( x );
   
    Pad.sendState();
