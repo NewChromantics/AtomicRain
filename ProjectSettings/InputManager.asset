@@ -35,8 +35,8 @@ InputManager:
     snap: 1
     invert: 0
     type: 2
-    axis: 0
-    joyNum: 2
+    axis: 1
+    joyNum: 1
   - serializedVersion: 3
     m_Name: joystick 3 horizontal
     descriptiveName: 
@@ -51,8 +51,8 @@ InputManager:
     snap: 1
     invert: 0
     type: 2
-    axis: 0
-    joyNum: 3
+    axis: 2
+    joyNum: 1
   - serializedVersion: 3
     m_Name: joystick 4 horizontal
     descriptiveName: 
@@ -67,8 +67,8 @@ InputManager:
     snap: 1
     invert: 0
     type: 2
-    axis: 0
-    joyNum: 4
+    axis: 3
+    joyNum: 1
   - serializedVersion: 3
     m_Name: joystick 5 horizontal
     descriptiveName: 

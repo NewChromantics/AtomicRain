@@ -116,10 +116,10 @@ public class Game : MonoBehaviour {
 	TState Update_InitGame()
 	{
 		//	count players and adjust scene
-		var JoystickNames = Input.GetJoystickNames();
+		var JoystickNames = new string[4]{"0","1","2","3"};//Input.GetJoystickNames();
 		if ( JoystickNames.Length == 0 )
 			return TState.Error_NoPlayers;
-
+		
 		Players = new List<TPlayer>();
 		//	built in joystick name is the OS name. not the input name
 		int JoystickIndex = 1;
