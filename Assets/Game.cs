@@ -79,7 +79,8 @@ public class Game : MonoBehaviour {
 				var Reading = Input.GetAxis( JoystickName + " horizontal");
 				if ( Reading != 0 )
 					Debug.Log( JoystickName + " = " + Reading );
-				return ( Reading < -100 ) ? -1 : ( Reading > 100 ) ? 1 : 0;
+				return (int)Reading;
+				//return ( Reading < -100 ) ? -1 : ( Reading > 100 ) ? 1 : 0;
 			}
 			catch(System.Exception e)
 			{
@@ -128,10 +129,11 @@ public class Game : MonoBehaviour {
 			//Player.JoystickName = JoystickName;
 			Player.JoystickName = "joystick " + JoystickIndex;
 			Player.Sprite = GameObject.Instantiate( PlayerTemplate );
+			Player.Sprite.transform.SetParent( PlayerTemplate.transform.parent, false );
 			Player.Sprite.gameObject.SetActive(true);
-			Player.Sprite.transform.SetParent( PlayerTemplate.transform.parent, true );
 			Players.Add( Player );
 
+			Debug.Log ("Found joystick " + Player.JoystickName);
 			JoystickIndex++;
 		}
 
@@ -189,6 +191,8 @@ public class Game : MonoBehaviour {
 			var Pos3 = Player.Sprite.transform.position;
 			Missile.StartPosition = new Vector2( Pos3.x, Pos3.y );
 			Missile.Sprite = GameObject.Instantiate( MissileTemplate );
+			Missile.Sprite.transform.SetParent( MissileTemplate.transform.parent, false );
+			Missile.Sprite.gameObject.SetActive(true);
 			Missiles.Add( Missile );
 		}
 

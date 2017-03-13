@@ -9,7 +9,7 @@ public class PlayerRenderer : MonoBehaviour {
 	public void SetAngle(float Angle)
 	{
 		var Rot = Cannon.localRotation;
-		Rot = Quaternion.Euler( 0, 0, Angle );
+		Rot = Quaternion.Euler( 0, 0, -Angle );
 		Cannon.localRotation = Rot;
 	}
 
