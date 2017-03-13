@@ -24,13 +24,16 @@ public class Game : MonoBehaviour {
 	}
 
 	private TState			State = TState.InitGame;
-	public GameObject		PlayerTemplate;
+	public PlayerRenderer	PlayerTemplate;
 	public GameObject		MissileTemplate;
 
 	bool					StateFirstUpdate;
 	float					StateTime;
 	List<TPlayer>			Players;
 	List<TMissile>			Missiles;
+
+	[Range(0,1)]
+	public float			JoystickThreshold = 0.01f;
 
 	[Header("Round Start")]
 	public UnityEvent		OnRoundStart;
@@ -63,17 +66,19 @@ public class Game : MonoBehaviour {
 
 	class TPlayer
 	{
-		public string		JoystickName;
-		public GameObject	Sprite;
-		public bool			Alive = true;
-		public float		Angle = 0;
+		public string			JoystickName;
+		public PlayerRenderer	Sprite;
+		public bool				Alive = true;
+		public float			Angle = 0;
 
 		public int			GetJoystickLeftRight()
 		{
 			try
 			{
-				var Reading = Input.GetAxisRaw( JoystickName + " Horizontal");
-				Debug.Log( JoystickName + " = " + Reading );
+				//	button = return "joystick " + (Joystick+1) + " button " + Button;
+				var Reading = Input.GetAxis( JoystickName + " horizontal");
+				if ( Reading != 0 )
+					Debug.Log( JoystickName + " = " + Reading );
 				return ( Reading < -100 ) ? -1 : ( Reading > 100 ) ? 1 : 0;
 			}
 			catch(System.Exception e)
@@ -115,14 +120,19 @@ public class Game : MonoBehaviour {
 			return TState.Error_NoPlayers;
 
 		Players = new List<TPlayer>();
+		//	built in joystick name is the OS name. not the input name
+		int JoystickIndex = 1;
 		foreach ( var JoystickName in JoystickNames )
 		{
 			var Player = new TPlayer();
-			Player.JoystickName = JoystickName;
+			//Player.JoystickName = JoystickName;
+			Player.JoystickName = "joystick " + JoystickIndex;
 			Player.Sprite = GameObject.Instantiate( PlayerTemplate );
 			Player.Sprite.gameObject.SetActive(true);
 			Player.Sprite.transform.SetParent( PlayerTemplate.transform.parent, true );
 			Players.Add( Player );
+
+			JoystickIndex++;
 		}
 
 		return TState.InitRound;
@@ -144,6 +154,7 @@ public class Game : MonoBehaviour {
 			var Input = Player.GetJoystickLeftRight();
 			Player.Angle += Input * AngleSpeed;
 			Player.Angle = Mathf.Clamp( Player.Angle, -AngleMax, AngleMax );
+			Player.Sprite.SetAngle( Player.Angle );
 		}
 
 	}
@@ -282,7 +293,8 @@ public class Game : MonoBehaviour {
 
 	void Start()
 	{
-		PlayerTemplate.SetActive(false);
+		PlayerTemplate.gameObject.SetActive(false);
+		MissileTemplate.gameObject.SetActive(false);
 	}
 
 	void Update ()
@@ -300,7 +312,7 @@ public class Game : MonoBehaviour {
 		{
 			StateFirstUpdate = false;
 			StateTime += Time.deltaTime;
-			Debug.Log("state " + State + "; " + StateTime );
+			//Debug.Log("state " + State + "; " + StateTime );
 			
 		}
 	}
