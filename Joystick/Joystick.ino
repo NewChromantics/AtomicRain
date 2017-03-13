@@ -8,6 +8,7 @@
 #define LED_PIN       10
 #define PLAYER_COUNT  4
 #define PAD_COUNT     PLAYER_COUNT
+#define LED_BRIGHTNESS  20
 
 Adafruit_NeoPixel Leds = Adafruit_NeoPixel(12, LED_PIN, NEO_RGB + NEO_KHZ800);
 
@@ -28,12 +29,17 @@ int PlayerJoystickPins[PLAYER_COUNT][2] =
   9,8,
 };
 
+int GamepadIndex[PLAYER_COUNT] = 
+{
+  3,2,1,0
+};
+
 uint32_t PlayerColours[PLAYER_COUNT] = 
 {
-  Leds.Color( 255,0,0 ),
-  Leds.Color( 0,255,255 ),
-  Leds.Color( 255,255,0 ),
-  Leds.Color( 255,0,255 ),
+  Leds.Color( LED_BRIGHTNESS,0,0 ),
+  Leds.Color( 0,LED_BRIGHTNESS,LED_BRIGHTNESS ),
+  Leds.Color( LED_BRIGHTNESS,LED_BRIGHTNESS,0 ),
+  Leds.Color( LED_BRIGHTNESS,0,LED_BRIGHTNESS ),
 };
 
 #define JOYSTICK_BUTTON_COUNT 0
@@ -90,7 +96,7 @@ Direction::TYPE PlayerDirection[PLAYER_COUNT] =
 
 uint32_t ColourOff = Leds.Color( 0,0,0,0 );
 
-
+bool TestFlash = false;
 int FlashCount = 0;
 int FlashAlternate = 20;
 int RefreshRate = 50;
@@ -117,10 +123,11 @@ void loop()
   */
 
   FlashCount++;
+  FlashCount %= FlashAlternate;
   
   for ( int p=0;  p<PLAYER_COUNT; p++ )
   {
-    auto PlayerColour = PlayerColours[p];
+     auto PlayerColour = PlayerColours[p];
     //auto PinLeft = PlayerJoystickPins[p][0];
     //auto PinRight = PlayerJoystickPins[p][1];
     //auto LeftDown = digitalRead( PinLeft ) == HIGH;
@@ -128,14 +135,14 @@ void loop()
     auto LeftDown = PlayerDirection[p] == Direction::Left;
     auto RightDown = PlayerDirection[p] == Direction::Right;
 
-    auto Flash = (FlashCount%FlashAlternate) <= (FlashAlternate/2);
+    auto Flash = (!TestFlash) || ((FlashCount) <= (FlashAlternate/2));
     
     Leds.setPixelColor( PlayerLeds[p][0], LeftDown ? PlayerColour : ColourOff );
     Leds.setPixelColor( PlayerLeds[p][1], Flash ? PlayerColour : ColourOff );
     Leds.setPixelColor( PlayerLeds[p][2], RightDown ? PlayerColour : ColourOff );
  
   
-    auto& Pad = Joystick[p];
+    auto& Pad = Joystick[GamepadIndex[p]];
     int16_t x = AXIS_MID;
     if ( LeftDown )
       x = AXIS_MIN;
